@@ -5,28 +5,35 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LoginDto } from './dto/login.dto';
-import { SignUpDto } from './dto/signup.dto';
-import { User } from './user.entity';
+import { LoginDto } from '../dto/login.dto';
+import { SignUpDto } from '../dto/signup.dto';
+import { User } from '../Entity/user.entity';
 import * as bcrypt from 'bcryptjs';
 import APIFeatures from 'src/utils/helper';
 import { JwtService } from '@nestjs/jwt';
+import { Address } from 'src/Entity/address.entity';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private authRepository: Repository<User>,
+    @InjectRepository(Address) private addressRepository: Repository<Address>,
     private jwtService: JwtService,
   ) {}
 
   async register(data: SignUpDto): Promise<any> {
-    const { name, email, password } = data;
-    const hasPassword = await bcrypt.hash(password, 10);
+    const hasPassword = await bcrypt.hash(data.password, 10);
     try {
+      const address = await this.addressRepository.create(data.address);
+      const addressID = await this.addressRepository.save(address);
+
       const user = await this.authRepository.create({
-        name,
-        email,
+        name: data.name,
+        email: data.email,
         password: hasPassword,
+        addressId: addressID.id,
+        phoneNumber: data.phoneNumber,
       });
+
       await this.authRepository.save(user);
       const token = await APIFeatures.assignJwtToken(user, this.jwtService);
 

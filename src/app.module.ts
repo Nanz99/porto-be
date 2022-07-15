@@ -1,11 +1,20 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { ProductController } from './product/product.controller';
+import { Address } from './Entity/address.entity';
+import { Category } from './Entity/category.entity';
+import { Product } from './Entity/product.entity';
+import { Role } from './Entity/role.entity';
+import { User } from './Entity/user.entity';
 import { ProductModule } from './product/product.module';
+import { UserModule } from './user/user.module';
+import { RoleController } from './role/role.controller';
+import { RoleService } from './role/role.service';
+import { RoleModule } from './role/role.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -17,11 +26,14 @@ import { ProductModule } from './product/product.module';
       username: 'postgres',
       password: '1234',
       database: 'porto',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      entities: [Product, Category, User, Role, Address],
       synchronize: true,
     }),
     AuthModule,
     ProductModule,
+    UserModule,
+    RoleModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

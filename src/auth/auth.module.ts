@@ -6,11 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { User } from './user.entity';
+import { User } from '../Entity/user.entity';
+import { Address } from 'src/Entity/address.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Address]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule], // Missing this
@@ -18,7 +19,7 @@ import { User } from './user.entity';
         signOptions: {
           expiresIn: configService.get('JWT_EXPIRES'),
         },
-        secret: configService.get('JWT_SECRET')
+        secret: configService.get('JWT_SECRET'),
       }),
       inject: [ConfigService],
     }),

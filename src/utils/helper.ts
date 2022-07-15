@@ -49,7 +49,7 @@ export default class APIFeatures {
         const fileName = `${splitFile[0]}_${random}.${splitFile[1]}`;
 
         const params = {
-          Bucket: `${process.env.AWS_S3_BUCKET_NAME}/restaurants`,
+          Bucket: `${process.env.AWS_S3_BUCKET_NAME}/porto`,
           Key: fileName,
           Body: file.buffer,
         };
@@ -60,6 +60,56 @@ export default class APIFeatures {
 
         if (images.length === files.length) {
           resolve(images);
+        }
+      });
+    });
+  }
+  static async uploadOneImage(file) {
+    return new Promise((resolve, reject) => {
+      const s3 = new S3({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_KEY,
+      });
+
+      const splitFile = file?.originalname.split('.');
+      const random = Date.now();
+
+      const fileName = `${splitFile[0]}_${random}.${splitFile[1]}`;
+
+      const params = {
+        Bucket: `${process.env.AWS_S3_BUCKET_NAME}/porto`,
+        Key: fileName,
+        Body: file.buffer,
+      };
+
+      const image = s3.upload(params).promise();
+
+      resolve(image);
+    });
+  }
+  static async deleteOneImage(image) {
+    const s3 = new S3({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_KEY,
+    });
+
+    let imagesKey = image.Key
+
+    const params = {
+      Bucket: `${process.env.AWS_S3_BUCKET_NAME}`,
+      Delete: {
+        Objects: imagesKey,
+        Quiet: false,
+      },
+    };
+
+    return new Promise((resolve, reject) => {
+      s3.deleteObjects(params, function (err, data) {
+        if (err) {
+          console.log(err);
+          reject(false);
+        } else {
+          resolve(true);
         }
       });
     });
@@ -99,14 +149,13 @@ export default class APIFeatures {
   }
 
   static async assignJwtToken(
-    user: { id: string; email: string; name: string; role: string },
+    user: { id: number; email: string; name: string },
     jwtService: JwtService,
   ): Promise<string> {
     const payload = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
     };
 
     const token = await jwtService.sign(payload);
